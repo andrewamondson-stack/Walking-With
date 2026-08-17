@@ -81,17 +81,20 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
   background:rgba(255,255,255,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid var(--dust);box-shadow:0 8px 32px rgba(0,0,0,.14);padding:18px 20px;
   font-family:'Inter',sans-serif;
+  opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease;
 }
+#intro-bubble.visible{opacity:1;transform:translateY(0);}
 #intro-bubble p{font-size:.82rem;line-height:1.6;color:var(--ink);margin:0 0 12px;}
-#intro-bubble .intro-start{display:inline-block;font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--gold);font-size:.95rem;margin-top:14px;}
-.intro-footer{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;gap:12px;}
-.intro-footer .intro-start{margin-top:0;}
-.intro-more{display:inline-block;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;font-weight:500;font-size:.72rem;color:var(--earth);white-space:nowrap;transition:color .15s;}
-.intro-more:hover{color:var(--ink);}
+#tour-more-hint{background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;font-weight:500;font-size:.72rem;color:var(--earth);white-space:nowrap;transition:color .15s,opacity .45s ease,transform .45s ease;opacity:0;transform:translateY(8px);}
+#tour-more-hint.visible{opacity:1;transform:translateY(0);}
+#tour-more-hint:hover{color:var(--ink);}
+#tour-start-hint{position:fixed;z-index:1200;font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--gold);font-size:.95rem;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:4px 10px;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.12);pointer-events:none;white-space:nowrap;opacity:0;transform:translateY(8px);transition:opacity .45s ease,transform .45s ease;}
+#tour-start-hint.visible{opacity:1;transform:translateY(0);}
 #intro-x{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--earth);opacity:.6;transition:opacity .15s;}
 #intro-x:hover{opacity:1;}
 #intro-connector{position:fixed;inset:0;width:100vw;height:100vh;z-index:1250;pointer-events:none;}
-#help-btn{margin-left:auto;width:22px;height:22px;border-radius:50%;border:1px solid var(--dust);background:none;
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#help-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--dust);background:none;
   color:var(--earth);font-family:'Inter',sans-serif;font-size:.72rem;cursor:pointer;flex-shrink:0;
   transition:background .15s,color .15s,border-color .15s;}
 #help-btn:hover{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
@@ -171,13 +174,16 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
       <div class="subtitle">Studio Olafur Eliasson</div>
     </div>
     <div class="tagline">GPS Routes</div>
-    <button id="help-btn" title="How this works">?</button>
+    <div class="header-right">
+      <button id="tour-more-hint" style="display:none">More questions? &#8594;</button>
+      <button id="help-btn" title="How this works">?</button>
+    </div>
   </header>
   <div id="help-panel" style="display:none">
     <button id="help-x">&#10005;</button>
     <div class="help-title">How this works</div>
     <ul>
-      <li>Every dot is one walk, one conversation, one person. All 62 move at once: this is two years of walking happening together.</li>
+      <li>Every dot is one walk, one conversation, one person. All 62 documented walks took place at different times, on different days, and at different times of year. But for this visualization, the walks are layered, sharing space and time.</li>
       <li>Click any dot on the map, or any name in the list, to open that walk.</li>
       <li>The selected walk comes to the front in gold; the rest dim so you can follow it clearly.</li>
       <li>Its panel holds a Postwalk Reflection, and a One Week Follow-Up below it when one was recorded.</li>
@@ -209,13 +215,10 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
       <p>You are invited to explore this map and the more than 60 walks I did with Studio Olafur Eliasson.</p>
       <p>Each dot is one walk, one conversation, one person.</p>
       <p>You can click on the dots moving on the map or select one from the list on the left.</p>
-      <p>You can read quotes and notes from the recorded reflections, which were transcribed and anonymized.</p>
-      <p>This map is a repository for my research into walking as a creative practice, a way of connecting to ideas, with one another, and the living world.</p>
-      <div class="intro-footer">
-        <div class="intro-start">Try starting here.</div>
-        <button id="intro-more" class="intro-more">More questions?</button>
-      </div>
+      <p>You can read quotes from the anonymized post-walk reflections as well as my notes and one-week follow-ups.</p>
+      <p>This map is a repository for my research into walking as a creative practice, a way of connecting to ideas, with one another, and the living world around us.</p>
     </div>
+    <div id="tour-start-hint" style="display:none">&#8592; Try starting here.</div>
     <div class="overlay" id="overlay">
       <div class="ov-title" id="ov-title">loading walks&#8230;</div>
       <div class="ov-sub" id="ov-sub"></div>
@@ -271,6 +274,45 @@ const WALKS={"Walk 45":[[52.531616,13.410367,0],[52.531706,13.410343,7299],[52.5
 
 
 const map=L.map('map',{preferCanvas:true}).setView([52.535,13.413],14);
+// Custom pane for the walk-color tint: sits above tiles (z 200) but below
+// the route lines' overlayPane (z 400) and marker dots' markerPane (z 600),
+// so every route and dot — especially the gold selected one — renders crisply
+// on top of the tinted map instead of being muted underneath it.
+map.createPane('tintPane');
+const tintPaneEl=map.getPane('tintPane');
+tintPaneEl.style.zIndex=250;
+tintPaneEl.style.pointerEvents='none';
+// A plain, oversized div (not a Leaflet vector layer) is placed inside the
+// pane, which itself lives inside Leaflet's shared, transformed map pane.
+// Because it moves via that same shared CSS transform as the tiles and
+// routes, it tracks panning perfectly with zero lag or redraw needed —
+// nothing to "outrun". Only a zoom actually changes the coordinate system,
+// so that's the one case it needs to recenter/resize for.
+const TINT_SIZE=12000;
+const tintEl=document.createElement('div');
+tintEl.style.position='absolute';
+tintEl.style.width=TINT_SIZE+'px';
+tintEl.style.height=TINT_SIZE+'px';
+tintEl.style.display='none';
+tintPaneEl.appendChild(tintEl);
+let tintActive=false,tintColor=null,tintOpacity=0;
+function positionTint(){
+  const c=map.latLngToLayerPoint(map.getCenter());
+  tintEl.style.left=(c.x-TINT_SIZE/2)+'px';
+  tintEl.style.top=(c.y-TINT_SIZE/2)+'px';
+}
+function setWalkTint(color,opacity){
+  tintActive=true;tintColor=color;tintOpacity=opacity;
+  tintEl.style.background=color;
+  tintEl.style.opacity=opacity;
+  tintEl.style.display='block';
+  positionTint();
+}
+function clearWalkTint(){
+  tintActive=false;
+  tintEl.style.display='none';
+}
+map.on('zoomend',()=>{if(tintActive)positionTint();});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);
 const PAL=['#2d6a4f','#c2571a','#3a5a8c','#8c3a5a','#6b6b3a','#1f7a7a','#a3651e','#4a4a8c','#7a3a4a','#3a7a3a'];
 let walkers=[],multiplier=5,running=false,rafId=null,wallStart=null,simOffset=0,longestDur=0,activePanelIdx=null,highlightedIdx=null,lastFrame=null;
@@ -340,6 +382,9 @@ function highlightWalker(idx){
     if(w.bgLine.bringToFront)w.bgLine.bringToFront();
     if(w.trail.bringToFront)w.trail.bringToFront();
   }catch(e){}
+  setWalkTint(w.color,0.3);
+  const row=document.querySelector(`.walker-row[data-idx="${idx}"]`);
+  if(row){row.classList.add('intro-target');row.scrollIntoView({block:'nearest',behavior:'smooth'});}
   revealWalkerBesidePanel(w);
 }
 function computeFitCenterZoom(bounds,paddingTL,paddingBR,maxZoom,minZoom){
@@ -373,6 +418,8 @@ function clearHighlight(){
   if(highlightedIdx===null)return;const w=walkers[highlightedIdx];if(!w){highlightedIdx=null;return;}
   w.marker.setIcon(L.divIcon({className:'',html:`<div class="w-dot" style="width:13px;height:13px;background:${w.color}"></div>`,iconSize:[13,13],iconAnchor:[6,6]}));
   w.trail.setStyle({color:w.color,weight:3.5,opacity:.88});highlightedIdx=null;
+  clearWalkTint();
+  document.querySelectorAll('.walker-row.intro-target').forEach(r=>r.classList.remove('intro-target'));
   walkers.forEach(ow=>{
     ow.trail.setStyle({opacity:.88});
     ow.bgLine.setStyle({opacity:.15});
@@ -550,46 +597,85 @@ function drawIntroConnectors(fragments){
   document.getElementById('intro-connector').innerHTML=fragments.join('');
 }
 
-function showIntro(){
+let tourCancelled=false,tourAwaitingHelpClose=false;
+function tourHighlightWalk15(){
   const idx=walkers.findIndex(w=>w.walkKey==='Walk 15');
-  if(idx<0)return;
-  introActive=true;
-  ambPaused=true;clearTimeout(ambTimer);
+  if(idx<0)return null;
   const w=walkers[idx];
   w.marker.setIcon(L.divIcon({className:'',html:`<div class="w-dot w-dot-hl" style="width:16px;height:16px;background:#f5c842;border-color:rgba(255,255,255,.95)"></div>`,iconSize:[16,16],iconAnchor:[8,8]}));
   w.trail.setStyle({color:'#f5c842',weight:4,opacity:1});
   if(w.bgLine.bringToFront)w.bgLine.bringToFront();
   if(w.trail.bringToFront)w.trail.bringToFront();
   highlightedIdx=idx;
-  const bubble=document.getElementById('intro-bubble');
-  bubble.style.display='block';
-  const row=document.querySelector(`.walker-row[data-idx="${idx}"]`);
-  if(row){row.scrollIntoView({block:'center',behavior:'instant'});row.classList.add('intro-target');}
-  const startText=document.querySelector('#intro-bubble .intro-start');
-  const redraw=()=>{
-    if(!introActive)return;
-    const frags=[];
-    if(row&&startText)frags.push(buildConnectorSvg(startText,row,w.color,{exitSide:'left'}));
-    const moreBtn=document.getElementById('intro-more'),helpBtn=document.getElementById('help-btn');
-    if(moreBtn&&helpBtn)frags.push(buildConnectorSvg(moreBtn,helpBtn,'#8a8a7c',{toCenter:true,exitSide:'right',endMargin:26}));
-    drawIntroConnectors(frags);
-  };
-  requestAnimationFrame(()=>requestAnimationFrame(redraw));
-  window.addEventListener('resize',redraw);
-  window._introRedraw=redraw;
-  document.getElementById('intro-x').addEventListener('click',closeIntro);
-  document.getElementById('intro-more').addEventListener('click',()=>{
-    closeIntro();
-    document.getElementById('help-panel').style.display='block';
-  });
+  return{idx,w};
 }
+function fadeShow(el,displayVal){
+  el.style.display=displayVal;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('visible')));
+}
+function fadeHide(el){
+  el.classList.remove('visible');
+  setTimeout(()=>{el.style.display='none';},460);
+}
+function tourStep1(){
+  if(tourCancelled||activePanelIdx!==null)return;
+  const found=tourHighlightWalk15();
+  if(!found)return;
+  introActive=true;
+  ambPaused=true;clearTimeout(ambTimer);
+  fadeShow(document.getElementById('intro-bubble'),'block');
+  const row=document.querySelector(`.walker-row[data-idx="${found.idx}"]`);
+  if(row){row.scrollIntoView({block:'center',behavior:'instant'});row.classList.add('intro-target');}
+}
+function tourStep2(){
+  if(tourCancelled)return;
+  fadeShow(document.getElementById('tour-more-hint'),'inline-block');
+}
+function tourStep3(){
+  if(tourCancelled)return;
+  const idx=walkers.findIndex(w=>w.walkKey==='Walk 15');
+  if(idx<0)return;
+  const row=document.querySelector(`.walker-row[data-idx="${idx}"]`);
+  if(!row)return;
+  row.scrollIntoView({block:'center',behavior:'instant'});
+  row.classList.add('intro-target');
+  const r=row.getBoundingClientRect();
+  const hint=document.getElementById('tour-start-hint');
+  hint.style.left=(r.right+14)+'px';
+  hint.style.top=(r.top+r.height/2-11)+'px';
+  fadeShow(hint,'block');
+}
+function tourOnHelpClosed(){
+  if(!tourAwaitingHelpClose||tourCancelled)return;
+  tourAwaitingHelpClose=false;
+  tourStep3();
+}
+document.getElementById('intro-x').addEventListener('click',()=>{
+  if(tourCancelled)return;
+  fadeHide(document.getElementById('intro-bubble'));
+  document.querySelectorAll('.walker-row.intro-target').forEach(r=>r.classList.remove('intro-target'));
+  tourStep2();
+});
+document.getElementById('tour-more-hint').addEventListener('click',()=>{
+  if(tourCancelled)return;
+  fadeHide(document.getElementById('tour-more-hint'));
+  document.getElementById('help-panel').style.display='block';
+  tourAwaitingHelpClose=true;
+});
 document.getElementById('help-btn').addEventListener('click',()=>{
-  if(introActive)closeIntro();
+  if(!tourCancelled&&document.getElementById('intro-bubble').style.display==='block'){
+    fadeHide(document.getElementById('intro-bubble'));
+    document.querySelectorAll('.walker-row.intro-target').forEach(r=>r.classList.remove('intro-target'));
+  }
   const panel=document.getElementById('help-panel');
-  panel.style.display=panel.style.display==='none'?'block':'none';
+  const wasOpen=panel.style.display==='block';
+  if(!wasOpen&&!tourCancelled)fadeHide(document.getElementById('tour-more-hint'));
+  panel.style.display=wasOpen?'none':'block';
+  if(wasOpen)tourOnHelpClosed();else if(!tourCancelled)tourAwaitingHelpClose=true;
 });
 document.getElementById('help-x').addEventListener('click',()=>{
   document.getElementById('help-panel').style.display='none';
+  tourOnHelpClosed();
 });
 const TERM_DEFINITIONS={
   opening:{title:'What I mean by an "Opening"',body:'For me it is the moment in the walk where something shifts... a perception changes, an unexpected connection forms, a new idea presents itself. Often it is physically felt, arriving with a change in the surroundings or in how the two walkers experience <span style="white-space:nowrap">\u201c<button class="term-link" data-term="sync">interpersonal synchrony</button>\u201d</span>. It\u2019s different from an Insight (a reflective observation), as it is forward facing, open to the felt phenomena.'},
@@ -614,13 +700,14 @@ document.getElementById('term-popup').addEventListener('click',e=>{
   if(e.target.id==='term-popup')document.getElementById('term-popup').classList.remove('open');
 });
 function closeIntro(){
-  if(!introActive)return;
-  introActive=false;
-  document.getElementById('intro-bubble').style.display='none';
+  if(tourCancelled)return;
+  tourCancelled=true;introActive=false;tourAwaitingHelpClose=false;
+  fadeHide(document.getElementById('intro-bubble'));
+  fadeHide(document.getElementById('tour-more-hint'));
+  fadeHide(document.getElementById('tour-start-hint'));
+  document.getElementById('help-panel').style.display='none';
   document.getElementById('intro-connector').innerHTML='';
   document.querySelectorAll('.walker-row.intro-target').forEach(r=>r.classList.remove('intro-target'));
-  if(window._introRedraw)window.removeEventListener('resize',window._introRedraw);
-  clearHighlight();
   ambResume();
 }
 
@@ -658,7 +745,11 @@ function closeIntro(){
   bar.style.width='100%';setTimeout(()=>{bar.style.opacity='0';},500);
   if(walkers.length>0)playAll();
   const hasWalk15=walkers.some(w=>w.walkKey==='Walk 15');
-  if(hasWalk15){setTimeout(showIntro,900);}else{setTimeout(ambShow,3500);}
+  if(hasWalk15){
+    setTimeout(()=>{
+      if(activePanelIdx===null)tourStep1();
+    },5000);
+  }else{setTimeout(ambShow,3500);}
 })();
 </script>
 </body>
