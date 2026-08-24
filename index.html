@@ -85,9 +85,11 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
 }
 #intro-bubble.visible{opacity:1;transform:translateY(0);}
 #intro-bubble p{font-size:.82rem;line-height:1.6;color:var(--ink);margin:0 0 12px;}
-#tour-more-hint{background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;font-weight:500;font-size:.72rem;color:var(--earth);white-space:nowrap;transition:color .15s,opacity .45s ease,transform .45s ease;opacity:0;transform:translateY(8px);}
+#intro-bubble .intro-sig{font-family:'Inter',sans-serif;font-style:italic;color:var(--earth);margin:-4px 0 0;}
+#tour-more-hint{background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',sans-serif;font-weight:600;font-size:.72rem;color:#c0392b;white-space:nowrap;transition:opacity .45s ease,transform .45s ease;opacity:0;transform:translateY(8px);animation:more-hint-pulse 1.4s ease-in-out infinite;}
 #tour-more-hint.visible{opacity:1;transform:translateY(0);}
-#tour-more-hint:hover{color:var(--ink);}
+#tour-more-hint:hover{color:var(--ink);animation-play-state:paused;}
+@keyframes more-hint-pulse{0%,100%{color:#c0392b;}50%{color:#e8897e;}}
 #tour-start-hint{position:fixed;z-index:1200;font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--gold);font-size:.95rem;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:4px 10px;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.12);pointer-events:none;white-space:nowrap;opacity:0;transform:translateY(8px);transition:opacity .45s ease,transform .45s ease;}
 #tour-start-hint.visible{opacity:1;transform:translateY(0);}
 #intro-x{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--earth);opacity:.6;transition:opacity .15s;}
@@ -217,6 +219,7 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
       <p>You can click on the dots moving on the map or select one from the list on the left.</p>
       <p>You can read quotes from the anonymized post-walk reflections as well as my notes and one-week follow-ups.</p>
       <p>This map is a repository for my research into walking as a creative practice, a way of connecting to ideas, with one another, and the living world around us.</p>
+      <p class="intro-sig">- Andrew</p>
     </div>
     <div id="tour-start-hint" style="display:none">&#8592; Try starting here.</div>
     <div class="overlay" id="overlay">
@@ -238,17 +241,17 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
     <div class="ctrl-group">
       <div class="ctrl-group-lbl">Speed</div>
       <div class="ctrl-presets" id="presets">
-        <button class="ctrl-preset" data-mul="1">1&times;</button>
-        <button class="ctrl-preset active" data-mul="5">5&times;</button>
+        <button class="ctrl-preset active" data-mul="1">1&times;</button>
+        <button class="ctrl-preset" data-mul="2">2&times;</button>
+        <button class="ctrl-preset" data-mul="5">5&times;</button>
         <button class="ctrl-preset" data-mul="10">10&times;</button>
         <button class="ctrl-preset" data-mul="30">30&times;</button>
-        <button class="ctrl-preset" data-mul="60">60&times;</button>
       </div>
     </div>
     <div class="ctrl-div"></div>
     <div class="ctrl-stat"><div class="ctrl-stat-val" id="t-elapsed">0:00</div><div class="ctrl-stat-key">Sim time</div></div>
     <div class="ctrl-stat"><div class="ctrl-stat-val" id="t-loops">0</div><div class="ctrl-stat-key">Loops</div></div>
-    <div class="ctrl-note" id="ctrl-note">5&times; &mdash; 1 hr in 12 min</div>
+    <div class="ctrl-note" id="ctrl-note">Andrew Amondson - 2026</div>
   </div>
 </div>
 <div class="quote-panel" id="quote-panel">
@@ -315,7 +318,7 @@ function clearWalkTint(){
 map.on('zoomend',()=>{if(tintActive)positionTint();});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19}).addTo(map);
 const PAL=['#2d6a4f','#c2571a','#3a5a8c','#8c3a5a','#6b6b3a','#1f7a7a','#a3651e','#4a4a8c','#7a3a4a','#3a7a3a'];
-let walkers=[],multiplier=5,running=false,rafId=null,wallStart=null,simOffset=0,longestDur=0,activePanelIdx=null,highlightedIdx=null,lastFrame=null;
+let walkers=[],multiplier=1,running=false,rafId=null,wallStart=null,simOffset=0,longestDur=0,activePanelIdx=null,highlightedIdx=null,lastFrame=null;
 let introActive=false;
 const MAX_FRAME_MS=100;
 
@@ -525,8 +528,7 @@ function pauseAll(){running=false;lastFrame=null;document.getElementById('play-b
 // Drop the stale frame reference so playback resumes smoothly instead of jumping.
 document.addEventListener('visibilitychange',()=>{if(document.hidden)lastFrame=null;else lastFrame=null;});
 document.getElementById('play-btn').addEventListener('click',()=>{if(running)pauseAll();else playAll();});
-const NOTES={1:'1\u00d7 \u2014 the true pace',5:'5\u00d7 \u2014 1 hr in 12 min',10:'10\u00d7 \u2014 1 hr in 6 min',30:'30\u00d7 \u2014 1 hr in 2 min',60:'60\u00d7 \u2014 1 hr in 1 min'};
-document.getElementById('presets').addEventListener('click',e=>{const b=e.target.closest('.ctrl-preset');if(!b)return;const was=running;if(was)pauseAll();multiplier=parseInt(b.dataset.mul);document.querySelectorAll('.ctrl-preset').forEach(x=>x.classList.toggle('active',x===b));document.getElementById('ctrl-note').textContent=NOTES[multiplier];if(was)playAll();});
+document.getElementById('presets').addEventListener('click',e=>{const b=e.target.closest('.ctrl-preset');if(!b)return;const was=running;if(was)pauseAll();multiplier=parseInt(b.dataset.mul);document.querySelectorAll('.ctrl-preset').forEach(x=>x.classList.toggle('active',x===b));if(was)playAll();});
 
 const ambQuotes=ALL_QUOTES.filter(q=>q.tag==='opening');
 let ambTimer=null,ambPaused=false,ambIdx=0,ambCurrentWalkKey=null;
@@ -727,19 +729,28 @@ function closeIntro(){
     bar.style.width=((i+1)/entries.length*100)+'%';
     document.getElementById('ov-sub').textContent=`${i+1} of ${entries.length}`;
   }
-  const allLL=walkers.flatMap(w=>w.points.map(p=>[p.lat,p.lon]));
-  if(allLL.length){
-    // Fit on the core cluster near the studio, not the full extent — a few
-    // walks range far out (one over 10km), and including those points forces
-    // the whole map to zoom out so much the main cluster reads as a speck.
-    const clat=allLL.reduce((s,p)=>s+p[0],0)/allLL.length;
-    const clon=allLL.reduce((s,p)=>s+p[1],0)/allLL.length;
-    const near=allLL.filter(p=>{
-      const dLat=(p[0]-clat)*111320,dLon=(p[1]-clon)*111320*Math.cos(clat*Math.PI/180);
-      return Math.sqrt(dLat*dLat+dLon*dLon)<900;
-    });
-    map.fitBounds(L.latLngBounds(near.length?near:allLL),{paddingTopLeft:[40,40],paddingBottomRight:[700,40]});
-  }
+  // A view built from real anchor points, not a guessed fixed center/zoom —
+  // fitBounds adapts correctly to any window size, guaranteeing the cluster
+  // and the Oberschöneweide walk (Walk 35) both stay visible regardless of
+  // screen shape, rather than only working for one specific screenshot.
+  // Opening view: a FIXED zoom (12, previously confirmed to show "Berlin"
+  // clearly) centred on the walk cluster, offset using the same padding-aware
+  // centring math already used for revealWalkerBesidePanel. Deliberately not
+  // fitBounds — combining a wide bounds with the box's real ~760px width
+  // forced fitBounds to zoom out catastrophically (as far as Poland) to fit
+  // both at once. Fixing the zoom directly avoids that failure mode entirely.
+  const clusterCentroid=[52.5337,13.4092];
+  const openingBounds=L.latLngBounds([clusterCentroid,clusterCentroid]);
+  const OPENING_ZOOM=13;
+  const _mapSize=map.getSize();
+  // The calibrated offset (from a wide desktop screenshot) is capped at a
+  // fraction of the actual map size, so on a narrower window it scales down
+  // instead of pushing the cluster off-screen entirely.
+  const _padBRx=Math.min(1178,_mapSize.x*0.42);
+  const _padBRy=Math.min(547,_mapSize.y*0.42);
+  const{center:openingCenter,zoom:openingZoom}=computeFitCenterZoom(
+    openingBounds,L.point(30,50),L.point(_padBRx,_padBRy),OPENING_ZOOM,OPENING_ZOOM);
+  map.setView(openingCenter,openingZoom);
   bar.style.width='100%';setTimeout(()=>{bar.style.opacity='0';},500);
   if(walkers.length>0)playAll();
   const hasTourWalk=walkers.some(w=>w.walkKey==='Walk 20');
