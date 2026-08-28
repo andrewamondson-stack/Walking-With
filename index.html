@@ -78,6 +78,7 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
 .fu-text{font-size:.85rem;line-height:1.6;color:var(--ink);}
 #intro-bubble{
   position:absolute;z-index:1200;right:min(30%,420px);top:70px;width:min(340px,78vw);
+  max-height:calc(100vh - 100px);overflow-y:auto;
   background:rgba(255,255,255,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid var(--dust);box-shadow:0 8px 32px rgba(0,0,0,.14);padding:18px 20px;
   font-family:'Inter',sans-serif;
@@ -101,6 +102,7 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
   transition:background .15s,color .15s,border-color .15s;}
 #help-btn:hover{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
 #help-panel{position:absolute;z-index:1300;top:52px;right:20px;width:300px;
+  max-height:calc(100vh - 80px);overflow-y:auto;
   background:rgba(255,255,255,.97);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border:1px solid var(--dust);box-shadow:0 8px 28px rgba(0,0,0,.16);padding:18px 20px;
   font-family:'Inter',sans-serif;}
