@@ -77,8 +77,8 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
 .fu-divider-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--earth);white-space:nowrap;}
 .fu-text{font-size:.85rem;line-height:1.6;color:var(--ink);}
 #intro-bubble{
-  position:absolute;z-index:1200;right:min(21%,300px);top:70px;width:min(340px,78vw);
-  max-height:calc(100vh - 100px);overflow-y:auto;
+  position:fixed;z-index:1200;right:min(calc(21vw - 54px),300px);width:min(340px,78vw);
+  overflow-y:auto;
   background:rgba(255,255,255,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   border:1px solid var(--dust);box-shadow:0 8px 32px rgba(0,0,0,.14);padding:18px 20px;
   font-family:'Inter',sans-serif;
@@ -195,6 +195,15 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
       <li>Speed controls how fast the walks replay. 1&times; is the true pace they were walked at.</li>
     </ul>
   </div>
+  <div id="intro-bubble" style="display:none">
+    <button id="intro-x">&#10005;</button>
+    <p>You are invited to explore this map and the more than 60 walks I did with Studio Olafur Eliasson.</p>
+    <p>Each dot is one walk, one conversation, one person.</p>
+    <p>You can click on the dots moving on the map or select one from the list on the left.</p>
+    <p>You can read quotes from the anonymized post-walk reflections as well as my notes and one-week follow-ups.</p>
+    <p>This map is a repository for my research into walking as a creative practice, a way of connecting to ideas, with one another, and the living world around us.</p>
+    <p class="intro-sig">- Andrew</p>
+  </div>
   <div id="term-popup">
     <div class="term-popup-card">
       <button class="term-popup-x" id="term-popup-x">&#10005;</button>
@@ -214,15 +223,6 @@ header{grid-column:1/-1;padding:14px 20px 11px;border-bottom:1px solid var(--dus
   </aside>
   <div class="map-wrap">
     <div id="map"></div>
-    <div id="intro-bubble" style="display:none">
-      <button id="intro-x">&#10005;</button>
-      <p>You are invited to explore this map and the more than 60 walks I did with Studio Olafur Eliasson.</p>
-      <p>Each dot is one walk, one conversation, one person.</p>
-      <p>You can click on the dots moving on the map or select one from the list on the left.</p>
-      <p>You can read quotes from the anonymized post-walk reflections as well as my notes and one-week follow-ups.</p>
-      <p>This map is a repository for my research into walking as a creative practice, a way of connecting to ideas, with one another, and the living world around us.</p>
-      <p class="intro-sig">- Andrew</p>
-    </div>
     <div id="tour-start-hint" style="display:none">&#8592; Try starting here.</div>
     <div class="overlay" id="overlay">
       <div class="ov-title" id="ov-title">loading walks&#8230;</div>
@@ -619,12 +619,22 @@ function fadeHide(el){
   el.classList.remove('visible');
   setTimeout(()=>{el.style.display='none';},460);
 }
+function positionIntroBubble(){
+  const bubble=document.getElementById('intro-bubble');
+  const headerH=document.querySelector('header').getBoundingClientRect().height;
+  const barH=document.querySelector('.ctrl-bar').getBoundingClientRect().height;
+  const topGap=70,bottomGap=20;
+  bubble.style.top=(headerH+topGap)+'px';
+  bubble.style.maxHeight=(window.innerHeight-headerH-barH-topGap-bottomGap)+'px';
+}
 function tourStep1(){
   if(tourCancelled||activePanelIdx!==null)return;
   const found=tourHighlightWalk15();
   if(!found)return;
   introActive=true;
   ambPaused=true;clearTimeout(ambTimer);
+  positionIntroBubble();
+  window.addEventListener('resize',positionIntroBubble);
   fadeShow(document.getElementById('intro-bubble'),'block');
   const row=document.querySelector(`.walker-row[data-idx="${found.idx}"]`);
   if(row){row.scrollIntoView({block:'center',behavior:'instant'});row.classList.add('intro-target');}
